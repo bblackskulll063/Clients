@@ -1,12 +1,14 @@
 import { addDoc, collection, doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
-import {  db } from '../config/firebase';
+import { db } from '../config/firebase';
 import { FaUser } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { FaPhoneAlt } from "react-icons/fa";
 import { HiStatusOnline } from "react-icons/hi";
 import { useNavigate, useParams } from 'react-router-dom';
+import validator from 'validator';
+
 
 const initialeState = {
     name: '',
@@ -25,6 +27,7 @@ const AddClient = () => {
     const { id } = useParams();
 
     useEffect(() => {
+
         onSnapshot(ClientCollectionsRef, async (data) => {
             try {
                 const filterData = data.docs.map((client) => ({
@@ -57,38 +60,60 @@ const AddClient = () => {
         if (!name || !email || !phone || !status) {
             toast.error("Please fill all the fields")
         }
-        else if(!id){
-            try {
-                await addDoc(ClientCollectionsRef, {
+
+        else if (!id) {
+            var phonePattern = /^\d{10}$/;
+            if (!validator.isEmail(email)) {
+                toast.error("Please enter valid email address")
+            }
+            else if (!phonePattern.test(phone)) {
+                toast.error("Please enter valid phone number")
+            }
+            else {
+                try {
+                    await addDoc(ClientCollectionsRef, {
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        status: status,
+                        userId: localStorage.getItem('user')
+                    })
+                    toast.success("Client added successfully")
+                    setnewClient(initialeState);
+                } catch (err) {
+                    toast.error(err);
+                }
+            }
+
+
+        }
+        else {
+            var phonePattern = /^\d{10}$/;
+            if (!validator.isEmail(email)) {
+                toast.error("Please enter valid email address")
+            }
+            else if (!phonePattern.test(phone)) {
+                toast.error("Please enter valid phone number")
+            }
+
+            else {
+                const datatoUpdate = doc(db, "clients", id);
+                await updateDoc(datatoUpdate, {
                     name: name,
                     email: email,
                     phone: phone,
                     status: status,
-                    userId: localStorage.getItem('user')
                 })
-                toast.success("Client added successfully")
-                setnewClient(initialeState);
-            } catch (err) {
-                toast.error(err);
+                    .then(() => {
+                        toast.success("Update Successfully")
+                        setnewClient(initialeState);
+                        navigate("/home");
+                    })
+                    .catch((error) => {
+                        toast.error(error.message)
+                    })
             }
-                
-        }
-        else {
-            const datatoUpdate = doc(db, "clients",id);
-            await updateDoc(datatoUpdate, {
-                name: name,
-                email: email,
-                phone: phone,
-                status: status,
-            })
-                .then(() => {
-                    toast.success("Update Successfully")
-                    setnewClient(initialeState);
-                    navigate("/home");
-                })
-                .catch((error) => {
-                    toast.error(error.message)
-                })
+
         }
     };
 
@@ -118,7 +143,7 @@ const AddClient = () => {
                     <HiStatusOnline size={30} className='icons' />
                     <input type="text" className="form-control" placeholder='Status' name='status' value={status || ''} onChange={handleOnChange} />
                 </div>
-                <button type="submit" className="btn" onClick={onSubmitNewClient}>{id?"Update":"Save"}</button>
+                <button type="submit" className="btn" onClick={onSubmitNewClient}>{id ? "Update" : "Save"}</button>
             </div>
         </div>
     )
