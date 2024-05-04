@@ -79,7 +79,7 @@ const Home = () => {
                             <td>{client.status}</td>
                             <td className='w-25'>
                                 <a href={`/update/${client.id}`}>
-                                    <button className='btn btn-success'  ><FaEdit size={20} /></button>
+                                    <button className='btn btn-success' ><FaEdit size={20} /></button>
                                 </a>
                                 <button className='btn btn-danger' onClick={() => deleteClient(client.id)} ><MdDelete size={20} /></button>
                                 <a href={`/view/${client.id}`}>
